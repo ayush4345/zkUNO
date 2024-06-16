@@ -19,7 +19,7 @@ const Navbar = () => {
       className={`${styles.xPaddings} py-8 relative w-full`}
       data-testid="navbar"
     >
-      <div className="absolute w-[100%] inset-0 gradient-01" />
+      <div className="absolute w-[100%] inset-0" />
       <div
         className={`w-full 2xl:max-w-[1280px] mx-auto flex justify-between gap-8`}
       >
