@@ -40,3 +40,23 @@ export const getUserData = async (address) => {
     return error;
   }
 };
+
+export const createPokerGame = async (id, size, lowBetChips, topBetChips, totalRounds) => {
+  try {
+    const response = await axios.post('/api/create-game', {
+      gameId: id,
+      size: size,
+      lowBetChips: lowBetChips,
+      topBetChips: topBetChips,
+      totalRounds: totalRounds
+    });
+    const data = response.data;
+    if (!data?.success) {
+      throw new Error('Error creating poker game. API response is not successful.');
+    }
+    return true;
+  } catch (error) {
+    console.error('Error creating poker game:', error);
+    throw error;
+  }
+};
