@@ -44,6 +44,25 @@ contract Playpoker is Ownable, Verifier {
 
     event GameStarted();
     event PlayerJoined(address indexed player);
+    event PlayerLeft(address indexed player);
+
+    modifier onlyPlayer() {
+        bool isPlayer = false;
+        for (uint i = 0; i < playerAddresses.length; i++) {
+            if (players[playerAddresses[i]].addr == msg.sender && players[playerAddresses[i]].isPlaying) {
+                isPlayer = true;
+                break;
+            }
+        }
+        require(isPlayer, "Not a player in the game");
+        _;
+    }
+
+
+    modifier atPhase(GamePhase phase) {
+        require(currentPhase == phase, "Function cannot be called at this phase");
+        _;
+    }
     
     constructor(uint _smallBlind, uint _bigBlind, address initialOwner) Ownable(initialOwner) {
         smallBlind = _smallBlind;
@@ -61,6 +80,17 @@ contract Playpoker is Ownable, Verifier {
         require(playerAddresses.length >= 2, "Not enough players to start the game");
         currentPhase = GamePhase.PreFlop;
         emit GameStarted();
+    }
+
+    function leaveGame() external onlyPlayer {
+        for (uint i = 0; i < playerAddresses.length; i++) {
+            if (playerAddresses[i] == msg.sender) {
+                payable(msg.sender).transfer(players[msg.sender].balance);
+                players[msg.sender].isPlaying = false;
+                emit PlayerLeft(msg.sender);
+                break;
+            }
+        }
     }
     
 }
