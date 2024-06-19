@@ -1,0 +1,15 @@
+{
+  "version": 1,
+  "contracts": [
+    {
+      "id": "mciq6ou86i8jo",
+      "package_name": "starkdeck_contracts",
+      "contract_name": "StarkDeckToken",
+      "module_path": "starkdeck_contracts::stark_deck_token::StarkDeckToken",
+      "artifacts": {
+        "sierra": "starkdeck_contracts_StarkDeckToken.contract_class.json",
+        "casm": "starkdeck_contracts_StarkDeckToken.compiled_contract_class.json"
+      }
+    }
+  ]
+}
