@@ -310,5 +310,3 @@ mod PlayPoker {
             self.pot.read()
         }
     }
-}
-
