@@ -12,11 +12,37 @@ import {
     DialogHeader,
     DialogTitle,
 } from "@/components/ui/dialog"
+import { Provider, Contract, Account, ec, json } from 'starknet';
+import { RpcProvider } from 'starknet';
 
 // ShareLink component - used for sharing a match link
 export default function AddFundPopUp({ openHandler, balance, setBalance }) {
     const router = useRouter()
     const [amount, setAmount] = useState(0)
+    const [abi, setAbi] = useState(null)
+    const [contract, setContract] = useState(null)
+
+    const provider = new RpcProvider({
+        nodeUrl: 'https://free-rpc.nethermind.io/sepolia-juno/v0_7',
+    });
+
+    console.log(provider)
+
+    const tokenAddress = '0x04ab2280bd66aa4d6195106662308e48b6ac2ab011fcf712e3f5d223f15c43e2';
+
+    useEffect(() => {
+        const fetchData = async () => {
+            const { abi: testAbi } = await provider.getClassAt(tokenAddress);
+            setAbi(testAbi)
+        }
+        fetchData()
+    }, [tokenAddress])
+
+    useEffect(() => {
+        if(!abi) return;
+        const tokenContract = new Contract(abi, tokenAddress, provider)
+        setContract(tokenContract)
+    }, [abi])
 
 
     const handleClick = (event) => {

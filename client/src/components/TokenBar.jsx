@@ -60,7 +60,7 @@ export default function TokenInfoBar() {
                         <DialogTrigger asChild>
                             <StyledButton className='bg-[#c69532] text-xs'><span className="flex items-center gap-3"><IoMdAdd />Add Fund</span> </StyledButton>
                         </DialogTrigger>
-                        <DialogContent className=" w-fit">
+                        <DialogContent className="min-w-[300px] max-w-[1100px] min-h-[10px] max-h-[480px] w-fit">
                             <AddFundPopUp openHandler={openHandler} accounts={accounts} balance={balance} setBalance={setBalance} />
                         </DialogContent>
                     </Dialog>
