@@ -14,7 +14,6 @@ import {
 import StyledButton from "./styled-button";
 import { useEffect, useState } from "react";
 import AddFundPopUp from "./AddFund";
-// import { useUserData } from "@/hooks/useUserData";
 import Link from "next/link";
 import { IoMdAdd } from "react-icons/io";
 
