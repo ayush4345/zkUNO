@@ -45,6 +45,9 @@ contract Playpoker is Ownable, Verifier {
     event GameStarted();
     event PlayerJoined(address indexed player);
     event PlayerLeft(address indexed player);
+    event Shuffled();
+    event HandDealt();
+    event PhaseAdvanced(GamePhase phase);
 
     modifier onlyPlayer() {
         bool isPlayer = false;
@@ -91,6 +94,70 @@ contract Playpoker is Ownable, Verifier {
                 break;
             }
         }
+    }
+
+    function shuffleDeck() external onlyOwner atPhase(GamePhase.PreFlop) {
+        bytes32[NUM_CARDS] memory deck;
+        uint256 index = 0;
+
+        for (uint256 suit = 0; suit < 4; suit++) {
+            for (uint256 value = 0; value < 13; value++) {
+                deck[index] = keccak256(abi.encodePacked(suit, value, index));
+                index++;
+            }
+        }
+
+        for (uint256 i = NUM_CARDS - 1; i > 0; i--) {
+            uint256 j = uint256(keccak256(abi.encodePacked(block.timestamp, block.difficulty))) % (i + 1);
+            (deck[i], deck[j]) = (deck[j], deck[i]);
+        }
+        shuffledDeck = deck;
+        emit Shuffled();
+    }
+
+    function dealHand() external onlyOwner atPhase(GamePhase.PreFlop) {
+        require(playerAddresses.length >= 2, "Not enough players to deal hand");
+
+        uint256 deckIndex = 0;
+        currentHand.holeCards = new bytes32[2][](NUM_PLAYERS);
+
+        // Deal hole cards to each player in a round-robin fashion
+        for (uint256 i = 0; i < 2; i++) {
+            for (uint256 j = 0; j < NUM_PLAYERS; j++) {
+                address playerAddr = playerAddresses[j];
+                if (players[playerAddr].isPlaying) {
+                    currentHand.holeCards[j][i] = shuffledDeck[deckIndex];
+                    deckIndex++;
+                }
+            }
+        }
+        // Advance to the next phase (Flop)
+        currentPhase = GamePhase.Flop;
+        emit HandDealt();
+        emit PhaseAdvanced(currentPhase);
+    }
+
+    function dealCommunityCards() internal onlyOwner {
+        uint256 holeCardsDealt = playerAddresses.length * 2;
+        uint256 deckIndex = holeCardsDealt;
+
+        if (currentPhase == GamePhase.Flop) {
+            // Deal the Flop
+            currentHand.communityCards[0] = shuffledDeck[deckIndex];
+            currentHand.communityCards[1] = shuffledDeck[deckIndex + 1];
+            currentHand.communityCards[2] = shuffledDeck[deckIndex + 2];
+            currentPhase = GamePhase.Turn;
+        } else if (currentPhase == GamePhase.Turn) {
+            // Deal the Turn
+            currentHand.communityCards[3] = shuffledDeck[deckIndex + 3];
+            currentPhase = GamePhase.River;
+        } else if (currentPhase == GamePhase.River) {
+            // Deal the River
+            currentHand.communityCards[4] = shuffledDeck[deckIndex + 4];
+            currentPhase = GamePhase.Showdown;
+        }
+
+        emit PhaseAdvanced(currentPhase);
     }
     
 }
