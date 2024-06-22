@@ -12,6 +12,7 @@ const Navbar = () => {
   const router = useRouter()
 
   return (
+    
     <motion.nav
       variants={navVariants}
       initial="hidden"

@@ -1,7 +1,8 @@
 // SPDX-License-Identifier: MIT
 
 #[starknet::contract]
-mod StarkDeckToken {
+pub(crate) mod StarkDeckToken {
+    use openzeppelin::access::ownable::ownable::OwnableComponent::InternalTrait;
     use openzeppelin::access::ownable::OwnableComponent;
     use openzeppelin::token::erc20::ERC20Component;
     use openzeppelin::token::erc20::ERC20HooksEmptyImpl;
@@ -16,13 +17,13 @@ mod StarkDeckToken {
     component!(path: UpgradeableComponent, storage: upgradeable, event: UpgradeableEvent);
 
     #[abi(embed_v0)]
-    impl ERC20MixinImpl = ERC20Component::ERC20MixinImpl<ContractState>;
+    pub impl ERC20MixinImpl = ERC20Component::ERC20MixinImpl<ContractState>;
     #[abi(embed_v0)]
-    impl OwnableMixinImpl = OwnableComponent::OwnableMixinImpl<ContractState>;
+    pub impl OwnableMixinImpl = OwnableComponent::OwnableMixinImpl<ContractState>;
 
-    impl ERC20InternalImpl = ERC20Component::InternalImpl<ContractState>;
-    impl OwnableInternalImpl = OwnableComponent::InternalImpl<ContractState>;
-    impl UpgradeableInternalImpl = UpgradeableComponent::InternalImpl<ContractState>;
+    pub impl ERC20InternalImpl = ERC20Component::InternalImpl<ContractState>;
+    pub impl OwnableInternalImpl = OwnableComponent::InternalImpl<ContractState>;
+    pub impl UpgradeableInternalImpl = UpgradeableComponent::InternalImpl<ContractState>;
 
     #[storage]
     struct Storage {
@@ -46,7 +47,7 @@ mod StarkDeckToken {
     }
 
     #[constructor]
-    fn constructor(ref self: ContractState, owner: ContractAddress) {
+    pub fn constructor(ref self: ContractState, owner: ContractAddress) {
         self.erc20.initializer("StarkDeckToken", "SDT");
         self.ownable.initializer(owner);
     }
@@ -55,22 +56,22 @@ mod StarkDeckToken {
     impl UpgradeableImpl of IUpgradeable<ContractState> {
         fn upgrade(ref self: ContractState, new_class_hash: ClassHash) {
             self.ownable.assert_only_owner();
-            self.upgradeable._upgrade(new_class_hash);
+            self.upgradeable.upgrade(new_class_hash);
         }
     }
 
     #[generate_trait]
     #[abi(per_item)]
-    impl ExternalImpl of ExternalTrait {
+    pub impl ExternalImpl of ExternalTrait {
         #[external(v0)]
         fn burn(ref self: ContractState, value: u256) {
-            self.erc20._burn(get_caller_address(), value);
+            self.erc20.burn(get_caller_address(), value);
         }
 
         #[external(v0)]
         fn mint(ref self: ContractState, recipient: ContractAddress, amount: u256) {
-            self.ownable.assert_only_owner();
-            self.erc20._mint(recipient, amount);
+            // self.ownable.assert_only_owner();
+            self.erc20.mint(recipient, amount);
         }
     }
 }
