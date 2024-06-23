@@ -37,6 +37,7 @@ export default function JoinGame() {
     });
 
     const pokerContractAddress = '0x02ce5351ec57e3c183799fcd70bb0dea15ff19b6c034f9e2b1ad045f3c199b90';
+    const tokenAddress = '0x04ab2280bd66aa4d6195106662308e48b6ac2ab011fcf712e3f5d223f15c43e2';
 
     const account = new Account(provider, '0x02a72374D267e09055Be18013DFf9384a2887d7e47dACb08A6eDDa15EA5470F2', "0x02df122b7de058c31ccb1dc8e197dc8055d9c65caae0f395fc9b3401c4b03c2d")
 
@@ -51,24 +52,37 @@ export default function JoinGame() {
     useEffect(() => {
         if (!abi) return;
         if (!contract) {
-            const tokenContract = new Contract(abi, pokerContractAddress, provider)
-            setContract(tokenContract)
-            tokenContract.connect(account);
+            const gameContract = new Contract(abi, pokerContractAddress, provider)
+            setContract(gameContract)
+            gameContract.connect(account);
         }
     }, [abi])
 
-    const joinGame = async() => {
+    const joinGame = async () => {
         if (user) {
             setJoining(true)
             contract.connect(account);
-            
+            // const { abi: tokenAbi } = await provider.getClassAt(tokenAddress);
+            // const tokenContract = new Contract(tokenAbi, tokenAddress, provider)
+            // tokenContract.connect(account);
+
+            // const approveCall = tokenContract.populate('approve', {
+            //     spender: pokerContractAddress,
+            //     amount: 1n * 10n ** 18n,
+            // });
+
+            // const { transaction_hash: approvetransferTxHash } = await account.execute(approveCall);
+            // // Wait for the invoke transaction to be accepted on Starknet
+            // console.log(`Waiting for Tx to be Accepted on Starknet - joining..., hash: ${approvetransferTxHash}`);
+            // await provider.waitForTransaction(approvetransferTxHash);
+
             const call = contract.populate('join_game', {
                 amount: 1n * 10n ** 18n,
             });
 
             const { transaction_hash: transferTxHash } = await account.execute(call);
             // Wait for the invoke transaction to be accepted on Starknet
-            console.log(`Waiting for Tx to be Accepted on Starknet - Transfer...`);
+            console.log(`Waiting for Tx to be Accepted on Starknet - joining..., hash: ${transferTxHash}`);
             await provider.waitForTransaction(transferTxHash);
 
             toast({
@@ -76,12 +90,10 @@ export default function JoinGame() {
                 description: `successfully joined the games`,
             })
 
-            // setTimeout(() => {
-            //     router.push(`/game?gameId=${gameId}`);
-            // }, 1500);
+            router.push(`/game?gameId=${gameId}`);
 
             setJoining(false)
-        }else{
+        } else {
             alert("Please connect your wallet")
         }
     }
@@ -137,8 +149,8 @@ export default function JoinGame() {
                     </div>
                     {user?.verifiedCredentials[0].address &&
                         <div className='flex flex-col items-center'>
-                            <input onChange={(e) => setGameId(e.target.value)} className='w-full border-2 mt-3 border-[#00b69a] bg-gray-600/60 rounded-md p-5 py-2 text-white' placeholder='enter the code' />
-                            <StyledButton className='w-full bg-[#00b69a] bottom-4 text-2xl mt-3' onClick={() => joinGame()} disabled={!(gameId != "")}>{joining ? `Joining Game...` : `Enter Game`} </StyledButton>
+                            {/* <input onChange={(e) => setGameId(e.target.value)} className='w-full border-2 mt-3 border-[#00b69a] bg-gray-600/60 rounded-md p-5 py-2 text-white' placeholder='enter the code' /> */}
+                            <StyledButton className='w-full bg-[#00b69a] bottom-4 text-2xl mt-3' onClick={() => joinGame()}>{joining ? `Joining Game...` : `Enter Game`} </StyledButton>
                         </div>
                     }
                 </div>
