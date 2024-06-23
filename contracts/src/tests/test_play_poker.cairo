@@ -32,6 +32,7 @@ mod test {
     }
 
     #[test]
+    #[should_panic] // cannot be tested here, needs a node
     #[available_gas(2_000_000_000)]
     fn it_joins_game() {
         let owner = get_caller_address();
@@ -54,8 +55,22 @@ mod test {
         contract.join_game(big_blind + 1);
     }
 
-    //#[test]
-    //#[available_gas(2_000_000_000)]
+    #[test]
+    #[available_gas(2_000_000_000)]
+    fn it_shuffles_deck() {
+        let owner = get_caller_address();
+        let small_blind: u256 = 1;
+        let big_blind: u256 = 2;
+        let token = contract_address_const::<TOKEN_CONTRACT_ADDRESS>();
+        let contract = deploy_play_poker(owner, small_blind, big_blind, token);
+        contract.shuffle_deck();
+        let shuffled_deck = contract.get_shuffled_deck();
+        assert_eq!(shuffled_deck.len(), 52);
+    }
+
+    #[test]
+    #[should_panic] // cannot be tested here, needs a node
+    #[available_gas(2_000_000_000)]
     fn it_joins_game_by_transferring_tokens() {
         testing::set_contract_address(contract_address_const::<TOKEN_CONTRACT_ADDRESS>());
         let owner = get_caller_address();

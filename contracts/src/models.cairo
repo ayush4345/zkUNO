@@ -1,14 +1,14 @@
 use starknet::ContractAddress;
-use starkdeck_contracts::events::game_events::game_phase::{PreFlop, Flop, Turn, River, Showdown};
+use starkdeck_contracts::events::game_events::game_phase::{PRE_FLOP, FLOP, TURN, RIVER, SHOWDOWN};
 use starkdeck_contracts::impls::{StoreHoleCardsArray, StoreCommunityCardsArray};
 
 #[derive(Drop, Serde, Copy, PartialEq, starknet::Event, starknet::Store)]
 pub enum GamePhase {
-    PreFlop: PreFlop,
-    Flop: Flop,
-    Turn: Turn,
-    River: River,
-    Showdown: Showdown
+    PRE_FLOP: PRE_FLOP,
+    FLOP: FLOP,
+    TURN: TURN,
+    RIVER: RIVER,
+    SHOWDOWN: SHOWDOWN
 }
 
 #[derive(Drop, Serde, Copy, PartialEq, starknet::Store)]
@@ -40,4 +40,17 @@ pub struct Hand {
     pub hole_cards: Array<HoleCards>,
     pub community_cards: Array<CommunityCards>,
     pub index: u256,
+}
+
+#[derive(Drop, Hash)]
+pub struct DeckCard {
+    pub suite: u8,
+    pub rank: u8,
+    pub index: u8
+}
+
+#[derive(Drop, Hash)]
+pub struct Block {
+    pub block_timestamp: u64,
+    pub block_number: u64,
 }

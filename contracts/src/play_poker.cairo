@@ -1,7 +1,13 @@
 #[starknet::contract]
 pub(crate) mod PlayPoker {
+    use core::dict::Felt252DictTrait;
+    use core::traits::Into;
     use starknet::{
-        ContractAddress, get_caller_address, get_contract_address, contract_address_const
+        ContractAddress, ClassHash, get_caller_address, get_contract_address,
+        contract_address_const, get_block_timestamp, get_block_number
+    };
+    use starkdeck_contracts::events::game_events::game_phase::{
+        PRE_FLOP, FLOP, TURN, RIVER, SHOWDOWN
     };
     use openzeppelin::access::ownable::OwnableComponent;
     use openzeppelin::upgrades::UpgradeableComponent;
@@ -11,8 +17,9 @@ pub(crate) mod PlayPoker {
         GameStarted, PlayerLeft, PlayerJoined, PlayerFolded, Shuffled, HandDealt, PlayerCommitted,
         PlayerRevealed, BetPlaced, PotUpdated, PotDistributed,
     };
-    use starknet::ClassHash;
-    use starkdeck_contracts::models::{GamePhase, Player, Hand};
+    use core::poseidon::PoseidonTrait;
+    use core::hash::{HashStateTrait, HashStateExTrait};
+    use starkdeck_contracts::models::{GamePhase, Player, Hand, DeckCard, Block};
     use starkdeck_contracts::impls::{StoreFelt252Array};
     use starkdeck_contracts::constants::{NUM_CARDS, NUM_PLAYERS, NUM_BOARD_CARDS};
     use starkdeck_contracts::interface::{IPlayPoker};
@@ -32,10 +39,11 @@ pub(crate) mod PlayPoker {
         big_blind: u256,
         current_phase: GamePhase,
         players: LegacyMap<ContractAddress, Player>,
+        total_players: u256,
         current_hand: Hand,
         player_commitments: LegacyMap::<u64, (ContractAddress, u256)>, // workaround for LegacyMap
         player_revealed: LegacyMap::<u64, (ContractAddress, bool)>, // workaround for LegacyMap
-        shuffle_deck: Array<felt252>,
+        shuffled_deck: Array<felt252>,
         current_bet: u256,
         pot: u256,
         token: IERC20Dispatcher,
@@ -79,6 +87,7 @@ pub(crate) mod PlayPoker {
         self.small_blind.write(_small_blind.into());
         self.big_blind.write(_big_blind.into());
         self.token.write(IERC20Dispatcher { contract_address: token });
+        self.total_players.write(0);
     }
 
 
@@ -102,11 +111,83 @@ pub(crate) mod PlayPoker {
                 balance: amount, address: get_caller_address(), is_playing: true, has_folded: false
             };
             self.players.write(player.address, player);
+            let total_players = self.total_players.read();
+            self.total_players.write(total_players + 1);
             self.emit(PlayerJoined { player: get_caller_address() });
         }
 
+        fn start_game(ref self: ContractState) {
+            let total_players = self.total_players.read();
+            assert!(total_players >= 2, "Minimum 2 players required to start the game");
+            self.current_phase.write(GamePhase::PRE_FLOP(PRE_FLOP {}));
+            self.emit(GameStarted {});
+        }
+
+        fn shuffle_deck(ref self: ContractState) {
+            assert!(
+                self.current_phase.read() == GamePhase::PRE_FLOP(PRE_FLOP {}),
+                "Phase should be PRE_FLOP"
+            );
+            let mut deck: Array<felt252> = array![];
+            let mut suite: u8 = 0;
+            let mut rank: u8 = 0;
+            let mut index: u8 = 0;
+            while suite < 4 {
+                while rank < 13 {
+                    let deck_card = DeckCard { suite, rank, index };
+                    let hash = PoseidonTrait::new().update_with(deck_card).finalize();
+                    deck.append(hash);
+                    rank += 1;
+                    index += 1;
+                };
+                suite += 1;
+                rank = 0;
+            };
+
+            index = 0;
+            let mut shuffled_deck_dict: Felt252Dict<felt252> = Default::default();
+            while index
+                .try_into()
+                .unwrap() < NUM_CARDS {
+                    let block_timestamp = get_block_timestamp();
+                    let block_number = get_block_number();
+                    let block = Block { block_timestamp, block_number };
+                    let hash = PoseidonTrait::new().update_with(block).finalize();
+                    let swap_pos: u256 = hash
+                        .into() % (NUM_CARDS - index.try_into().unwrap())
+                        .into();
+                    let temp = *deck[swap_pos.try_into().unwrap()];
+                    shuffled_deck_dict.insert(index.into(), temp);
+                    index += 1;
+                };
+
+            let mut shuffled_deck: Array<felt252> = array![];
+
+            index = 0;
+            while index
+                .try_into()
+                .unwrap() < NUM_CARDS {
+                    shuffled_deck.append(shuffled_deck_dict.get(index.into()));
+                };
+            self.shuffled_deck.write(shuffled_deck);
+            self.emit(Shuffled {});
+        }
+
+
         fn get_player(self: @ContractState, player: ContractAddress) -> Player {
             self.players.read(player)
+        }
+
+        fn get_current_phase(self: @ContractState) -> GamePhase {
+            self.current_phase.read()
+        }
+
+        fn get_shuffled_deck(self: @ContractState) -> Array<felt252> {
+            self.shuffled_deck.read()
+        }
+
+        fn get_total_players(self: @ContractState) -> u256 {
+            self.total_players.read()
         }
     }
 }
