@@ -5,6 +5,8 @@ import StyledButton from '@/components/styled-button'
 import { v4 } from 'uuid'
 import { createPokerGame } from '@/util/databaseFunctions'
 import { useRouter } from 'next/navigation'
+import TokenInfoBar from '@/components/TokenBar'
+import ShareLink from '@/components/shareLink'
 
 
 export default function CreateGamePage() {
@@ -50,7 +52,8 @@ export default function CreateGamePage() {
 
     return (
         <div className='relative'>
-            <div className='bg-white w-[1280px] h-[720px] overflow-hidden mx-auto my-8 px-4 py-2 rounded-lg bg-cover bg-[url("/bg-2.jpg")] relative shadow-[0_0_20px_rgba(0,0,0,0.8)]'>
+            <TokenInfoBar />
+            <div className='bg-white w-full max-w-[1280px] h-[720px] overflow-hidden mx-auto my-8 px-4 py-2 rounded-lg bg-cover bg-[url("/bg-2.jpg")] relative shadow-[0_0_20px_rgba(0,0,0,0.8)]'>
                 <div className='absolute inset-0 bg-no-repeat bg-[url("/table-1.png")]'></div>
                 <div className='absolute left-8 -right-8 top-14 -bottom-14 bg-no-repeat bg-[url("/dealer.png")] transform-gpu'>
                     <div className='absolute -left-8 right-8 -top-14 bottom-14 bg-no-repeat bg-[url("/card-0.png")] animate-floating'></div>
@@ -61,7 +64,6 @@ export default function CreateGamePage() {
                         Choose the settings for you new match.<br />
                         The power in your hands.
                     </div>
-
                     <div className='text-right'>
                         <div className='flex gap-6 my-6 items-center'>
                             <div className='text-white font-black text-right w-32'>PLAYERS</div>
@@ -92,7 +94,7 @@ export default function CreateGamePage() {
                         <div className='flex gap-6 my-6'>
                             <div className='text-white font-black text-right w-32'>LOW BET CHIPS</div>
                             <div className='flex-1'>
-                                <MyRange min={1} max={100} value={lowBetChips} onChange={setLowBetChips} className='bg-[url("/range-icon.png")]' />
+                                <MyRange min={1} max={20} value={lowBetChips} onChange={setLowBetChips} className='bg-[url("/range-icon.png")]' />
                             </div>
                             <div className='bg-black/20 text-white rounded-full w-12 h-6 px-2 text-right'>{lowBetChips}</div>
                         </div>
@@ -100,7 +102,7 @@ export default function CreateGamePage() {
                         <div className='flex gap-6 my-6'>
                             <div className='text-white font-black text-right w-32'>TOP BET CHIPS</div>
                             <div className='flex-1'>
-                                <MyRange min={200} max={10000} value={topBetChips} onChange={setTopBetChips} className='bg-[url("/range-icon.png")]' />
+                                <MyRange min={50} max={1000} value={topBetChips} onChange={setTopBetChips} className='bg-[url("/range-icon.png")]' />
                             </div>
                             <div className='bg-black/20 text-white rounded-full w-12 h-6 px-2 text-right'>{topBetChips}</div>
                         </div>
@@ -131,7 +133,7 @@ export default function CreateGamePage() {
                             <div className='w-40 h-40 bg-no-repeat bg-center bg-[url("/loading-icon-fg.png")] animate-[spin_1.6s_linear_infinite]'></div>
                         </div>
                         <p className='text-2xl font-black my-8'>Creating Game ...</p>
-                        <p>It is expected to take 4-5 minutes,</p>
+                        <p>It is expected to take 1-2 minutes,</p>
                         <p>please be patient!</p>
                         <StyledButton className='bg-[#ff9000] m-8' roundedStyle='rounded-full' onClick={() => { setCoLoading(false) }}>
                             <div className='text-2xl'>CANCEL</div>
@@ -139,6 +141,7 @@ export default function CreateGamePage() {
                     </div>
                 </div>
             </div>}
+            {(handleSubmitState && gameId) && <ShareLink link={`/game?gameId=${gameId}`} />}
         </div>
     )
 }
