@@ -3,6 +3,7 @@ pragma solidity ^0.8.0;
 
 import "@openzeppelin/contracts/access/Ownable.sol";
 //import "@openzeppelin/contracts/utils/math/SafeMath.sol";
+import "./verifier.sol";
 
 contract Playpoker is Ownable, Verifier {
     //using SafeMath for uint256;
@@ -43,11 +44,17 @@ contract Playpoker is Ownable, Verifier {
     uint256 public pot;
 
     event GameStarted();
-    event PlayerJoined(address indexed player);
     event PlayerLeft(address indexed player);
+    event PlayerJoined(address indexed player);
+    event PlayerFolded(address indexed player);
     event Shuffled();
     event HandDealt();
     event PhaseAdvanced(GamePhase phase);
+    event PlayerCommitted(address indexed player);
+    event PlayerRevealed(address indexed player, bytes32[2] hand);
+    event BetPlaced(address indexed player, uint256 amount);
+    event PotUpdated(uint256 amount);
+    event PotDistributed(uint256 potAmount, address[] winners, uint256 numWinners);
 
     modifier onlyPlayer() {
         bool isPlayer = false;
@@ -66,7 +73,7 @@ contract Playpoker is Ownable, Verifier {
         require(currentPhase == phase, "Function cannot be called at this phase");
         _;
     }
-    
+
     constructor(uint _smallBlind, uint _bigBlind, address initialOwner) Ownable(initialOwner) {
         smallBlind = _smallBlind;
         bigBlind = _bigBlind;
@@ -115,6 +122,8 @@ contract Playpoker is Ownable, Verifier {
         emit Shuffled();
     }
 
+
+
     function dealHand() external onlyOwner atPhase(GamePhase.PreFlop) {
         require(playerAddresses.length >= 2, "Not enough players to deal hand");
 
@@ -159,5 +168,121 @@ contract Playpoker is Ownable, Verifier {
 
         emit PhaseAdvanced(currentPhase);
     }
-    
+
+    function commitHand(bytes32 commitment) external onlyPlayer atPhase(GamePhase.PreFlop) {
+        currentHand.playerCommitments[msg.sender] = commitment;
+        emit PlayerCommitted(msg.sender);
+    }
+
+
+    function revealHand(bytes32[2] memory hand, Proof memory proof, uint256[18] memory publicInputs) external onlyPlayer atPhase(GamePhase.Showdown) {
+        // Verify the proof using zk
+        bool isValidProof = verifyTx(proof, publicInputs);
+        require(isValidProof, "Invalid ZK proof");
+
+        bytes32 commitment = keccak256(abi.encodePacked(hand));
+        require(commitment == currentHand.playerCommitments[msg.sender], "Hand does not match commitment");
+
+        //uint256 handStrength = uint256(proof.input[proof.input.length - 1]);
+        uint256 handStrength = publicInputs[publicInputs.length - 1];
+
+        currentHand.revealed[msg.sender] = true;
+        currentHand.revealedHands[msg.sender] = hand;
+        currentHand.isValidProof[msg.sender] = isValidProof;
+        currentHand.handStrength[msg.sender] = handStrength;
+        emit PlayerRevealed(msg.sender, hand);
+    }
+
+    function placeBet(uint256 amount) external onlyPlayer {
+        require(amount >= currentBet, "Bet amount must be at least the current bet");
+        Player storage player = players[msg.sender];
+        require(player.balance >= amount, "Insufficient balance to place bet");
+
+        player.balance -= amount;
+        pot += amount;
+        currentBet = amount;
+
+        emit BetPlaced(msg.sender, amount);
+        emit PotUpdated(pot);
+    }
+
+    function fold() external onlyPlayer {
+        Player storage player = players[msg.sender];
+        player.hasFolded = true;
+        emit PlayerFolded(msg.sender);
+    }
+
+    function nextRound() external onlyOwner {
+        if (currentPhase == GamePhase.Flop) {
+            dealCommunityCards();
+        } else if (currentPhase == GamePhase.Turn) {
+            dealCommunityCards();
+        } else if (currentPhase == GamePhase.River) {
+            dealCommunityCards();
+        }
+    }
+
+    function endHand() external onlyOwner atPhase(GamePhase.Showdown) {        
+        address[] memory winners;
+        uint256 bestHandValue = 0;
+        uint256 numWinners = 0;
+        
+        for (uint256 i = 0; i < playerAddresses.length; i++) {
+            address playerAddr = playerAddresses[i];
+            Player storage player = players[playerAddr];
+            if (player.isPlaying && !player.hasFolded && currentHand.revealed[playerAddr] && currentHand.isValidProof[playerAddr]) {
+                uint256 handValue = currentHand.handStrength[playerAddr];
+                if (handValue > bestHandValue) {
+                    bestHandValue = handValue;
+                    delete winners;
+                    winners[0] = playerAddr;
+                    numWinners = 1;
+                } else if (handValue == bestHandValue) {
+                    address[] memory newWinners = new address[](numWinners + 1);
+                    for (uint256 j = 0; j < numWinners; j++) {
+                        newWinners[j] = winners[j];
+                    }
+                    newWinners[numWinners] = playerAddr;
+                    winners = newWinners;
+                    numWinners++;
+                }
+            }
+        }
+
+        if (numWinners == 1) {
+            players[winners[0]].balance += pot;
+        } else {
+            uint256 splitPot = pot / numWinners;
+            for (uint256 i = 0; i < numWinners; i++) {
+                players[winners[i]].balance += splitPot;
+            }
+        }
+        emit PotDistributed(pot, winners, numWinners);
+
+        for (uint256 i = 0; i < playerAddresses.length; i++) {
+            address playerAddr = playerAddresses[i];
+            Player storage player = players[playerAddr];
+            player.hasFolded = false;
+        }
+
+        pot = 0;
+        currentBet = 0;
+        currentPhase = GamePhase.PreFlop;
+    }
+
+    function getPlayerHand(address player) external view returns (bytes32[2] memory) {
+        for (uint256 i = 0; i < playerAddresses.length; i++) {
+            if (playerAddresses[i] == player) {
+                return currentHand.holeCards[i];
+            }
+        }
+        revert("Player not found");
+    }
+
+    function decodeCard(bytes32 card) internal pure returns (uint8 rank, uint8 suit) {
+        rank = uint8(uint256(card) % 13); // Rank is 0-12
+        suit = uint8(uint256(card) / 13); // Suit is 0-3
+        return (rank, suit);
+    }
+
 }

@@ -1,5 +1,10 @@
 #[starknet::contract]
 pub(crate) mod PlayPoker {
+    use core::box::BoxTrait;
+    use core::array::ArrayTrait;
+    use core::serde::Serde;
+    use core::traits::TryInto;
+    use alexandria_storage::list::ListTrait;
     use core::dict::Felt252DictTrait;
     use core::traits::Into;
     use starknet::{
@@ -15,12 +20,15 @@ pub(crate) mod PlayPoker {
     use openzeppelin::token::erc20::interface::{IERC20Dispatcher, IERC20DispatcherTrait};
     use starkdeck_contracts::events::game_events::{
         GameStarted, PlayerLeft, PlayerJoined, PlayerFolded, Shuffled, HandDealt, PlayerCommitted,
-        PlayerRevealed, BetPlaced, PotUpdated, PotDistributed,
+        PlayerRevealed, BetPlaced, PotUpdated, PotDistributed, PhaseAdvanced
     };
     use core::poseidon::PoseidonTrait;
     use core::hash::{HashStateTrait, HashStateExTrait};
     use starkdeck_contracts::models::{GamePhase, Player, Hand, DeckCard, Block};
-    use starkdeck_contracts::impls::{StoreFelt252Array};
+    use starkdeck_contracts::impls::{
+        StoreFelt252Array, PartialOrdFelt, ListHoleCardsCopy, ListCommunityCardsCopy,
+        ArrayFelt252Copy
+    };
     use starkdeck_contracts::constants::{NUM_CARDS, NUM_PLAYERS, NUM_BOARD_CARDS};
     use starkdeck_contracts::interface::{IPlayPoker};
 
@@ -39,10 +47,9 @@ pub(crate) mod PlayPoker {
         big_blind: u256,
         current_phase: GamePhase,
         players: LegacyMap<ContractAddress, Player>,
+        player_addresses: LegacyMap<u256, ContractAddress>,
         total_players: u256,
         current_hand: Hand,
-        player_commitments: LegacyMap::<u64, (ContractAddress, u256)>, // workaround for LegacyMap
-        player_revealed: LegacyMap::<u64, (ContractAddress, bool)>, // workaround for LegacyMap
         shuffled_deck: Array<felt252>,
         current_bet: u256,
         pot: u256,
@@ -62,8 +69,7 @@ pub(crate) mod PlayPoker {
         PlayerFolded: PlayerFolded,
         Shuffled: Shuffled,
         HandDealt: HandDealt,
-        #[flat]
-        PhaseAdvanced: GamePhase,
+        PhaseAdvanced: PhaseAdvanced,
         PlayerCommitted: PlayerCommitted,
         PlayerRevealed: PlayerRevealed,
         BetPlaced: BetPlaced,
@@ -110,8 +116,9 @@ pub(crate) mod PlayPoker {
             let player = Player {
                 balance: amount, address: get_caller_address(), is_playing: true, has_folded: false
             };
-            self.players.write(player.address, player);
             let total_players = self.total_players.read();
+            self.player_addresses.write(total_players, get_caller_address());
+            self.players.write(player.address, player);
             self.total_players.write(total_players + 1);
             self.emit(PlayerJoined { player: get_caller_address() });
         }
@@ -173,6 +180,54 @@ pub(crate) mod PlayPoker {
             self.emit(Shuffled {});
         }
 
+        fn deal_hand(ref self: ContractState) {
+            let total_players = self.total_players.read();
+            assert!(total_players >= 2, "Minimum 2 players required to start the game");
+            let mut deck_index = 0;
+            let mut current_hand = self.current_hand.read();
+            let shuffled_deck = self.shuffled_deck.read();
+            let mut i = 0;
+            let mut j = 0;
+            while i < 2 {
+                while j < total_players {
+                    let player_address = self.player_addresses.read(j);
+                    let player = self.players.read(player_address);
+                    if player.is_playing {
+                        let mut hole_cards = current_hand
+                            .hole_cards
+                            .get(j.try_into().unwrap())
+                            .unwrap()
+                            .unwrap();
+                        if i == 0 {
+                            hole_cards
+                                .card1 =
+                                    (*shuffled_deck
+                                        .get(deck_index)
+                                        .unwrap()
+                                        .unbox()
+                                        .try_into()
+                                        .unwrap())
+                                .into();
+                        } else if i == 1 {
+                            hole_cards
+                                .card2 =
+                                    (*shuffled_deck
+                                        .get(deck_index)
+                                        .unwrap()
+                                        .unbox()
+                                        .try_into()
+                                        .unwrap())
+                                .into();
+                        };
+                        deck_index += 1;
+                    };
+                };
+            };
+
+            self.current_phase.write(GamePhase::FLOP(FLOP {}));
+            self.emit(HandDealt {});
+            self.emit(PhaseAdvanced { phase: GamePhase::FLOP(FLOP {}) });
+        }
 
         fn get_player(self: @ContractState, player: ContractAddress) -> Player {
             self.players.read(player)
