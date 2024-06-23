@@ -175,7 +175,7 @@ contract Playpoker is Ownable, Verifier {
     }
 
 
-    function revealHand(bytes32[2] memory hand, Proof memory proof, uint256[18] memory publicInputs) external onlyPlayer atPhase(GamePhase.Showdown) {
+    function revealHand(bytes32[2] memory hand, Proof memory proof, uint256[19] memory publicInputs) external onlyPlayer atPhase(GamePhase.Showdown) {
         // Verify the proof using zk
         bool isValidProof = verifyTx(proof, publicInputs);
         require(isValidProof, "Invalid ZK proof");
