@@ -33,10 +33,7 @@ export default function AddFundPopUp({ openHandler, balance, setBalance }) {
 
     const tokenAddress = '0x04ab2280bd66aa4d6195106662308e48b6ac2ab011fcf712e3f5d223f15c43e2';
 
-    const account0 = new Account(provider, '0x02a72374D267e09055Be18013DFf9384a2887d7e47dACb08A6eDDa15EA5470F2', "0x02df122b7de058c31ccb1dc8e197dc8055d9c65caae0f395fc9b3401c4b03c2d")
-    console.log(account0)
-    console.log(account0.address)
-    console.log(process.env.NEXT_PUBLIC_PRIVATE_KEY)
+    const account0 = new Account(provider, '0x02a72374D267e09055Be18013DFf9384a2887d7e47dACb08A6eDDa15EA5470F2', process.env.NEXT_PUBLIC_PRIVATE_KEY)
 
     useEffect(() => {
         const fetchData = async () => {
