@@ -1,6 +1,9 @@
 use starknet::ContractAddress;
 use starkdeck_contracts::events::game_events::game_phase::{PRE_FLOP, FLOP, TURN, RIVER, SHOWDOWN};
-use starkdeck_contracts::impls::{StoreHoleCardsArray, StoreCommunityCardsArray};
+use starkdeck_contracts::impls::{
+    StoreHoleCardsArray, StoreCommunityCardsArray, ListHoleCardsCopy, ListCommunityCardsCopy,
+};
+use alexandria_storage::list::{List, ListTrait};
 
 #[derive(Drop, Serde, Copy, PartialEq, starknet::Event, starknet::Store)]
 pub enum GamePhase {
@@ -21,7 +24,6 @@ pub struct Player {
 
 #[derive(Drop, Serde, Copy, PartialEq, starknet::Store)]
 pub struct HoleCards {
-    pub player_address: ContractAddress,
     pub card1: u256,
     pub card2: u256,
 }
@@ -35,11 +37,47 @@ pub struct CommunityCards {
     pub card5: u256,
 }
 
-#[derive(Drop, Serde, PartialEq, starknet::Store)]
+#[derive(Drop, Copy, starknet::Store)]
 pub struct Hand {
-    pub hole_cards: Array<HoleCards>,
-    pub community_cards: Array<CommunityCards>,
+    pub hole_cards: List<HoleCards>,
+    pub community_cards: List<CommunityCards>,
+    pub player_commitments: PlayerCommittments,
+    pub revealed: Revealed,
+    pub revealed_hands: RevealedHands,
+    pub is_valid_proof: IsValidProof,
+    pub hand_strength: HandStrength,
     pub index: u256,
+}
+
+#[derive(Drop, Copy, Serde, PartialEq, starknet::Store)]
+struct PlayerCommittments {
+    player_address: ContractAddress,
+    committment: u256,
+}
+
+#[derive(Drop, Copy, Serde, PartialEq, starknet::Store)]
+struct Revealed {
+    player_address: ContractAddress,
+    revealed: bool,
+}
+
+#[derive(Drop, Copy, Serde, PartialEq, starknet::Store)]
+struct RevealedHands {
+    player_address: ContractAddress,
+    pub card1: u256,
+    pub card2: u256,
+}
+
+#[derive(Drop, Copy, Serde, PartialEq, starknet::Store)]
+struct IsValidProof {
+    player_address: ContractAddress,
+    is_valid: bool,
+}
+
+#[derive(Drop, Copy, Serde, PartialEq, starknet::Store)]
+struct HandStrength {
+    player_address: ContractAddress,
+    strength: u256,
 }
 
 #[derive(Drop, Hash)]

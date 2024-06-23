@@ -1,4 +1,5 @@
 pub mod game_events {
+    use starkdeck_contracts::models::{GamePhase,};
     use starknet::ContractAddress;
 
     pub mod game_phase {
@@ -27,6 +28,10 @@ pub mod game_events {
         pub player: ContractAddress
     }
 
+    #[derive(Drop, PartialEq, starknet::Event)]
+    pub struct PhaseAdvanced {
+        pub phase: GamePhase
+    }
 
     #[derive(Drop, PartialEq, starknet::Event)]
     pub struct PlayerJoined {
