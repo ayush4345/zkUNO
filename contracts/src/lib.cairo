@@ -4,7 +4,5 @@ mod events;
 mod constants;
 mod models;
 mod impls;
-
-
-#[cfg(test)]
+mod interface;
 mod tests;
