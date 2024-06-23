@@ -3,19 +3,19 @@ pub mod game_events {
 
     pub mod game_phase {
         #[derive(Drop, Serde, Copy, PartialEq, starknet::Event, starknet::Store)]
-        pub struct PreFlop {}
+        pub struct PRE_FLOP {}
 
         #[derive(Drop, Serde, Copy, PartialEq, starknet::Event, starknet::Store)]
-        pub struct Flop {}
+        pub struct FLOP {}
 
         #[derive(Drop, Serde, Copy, PartialEq, starknet::Event, starknet::Store)]
-        pub struct Turn {}
+        pub struct TURN {}
 
         #[derive(Drop, Serde, Copy, PartialEq, starknet::Event, starknet::Store)]
-        pub struct River {}
+        pub struct RIVER {}
 
         #[derive(Drop, Serde, Copy, PartialEq, starknet::Event, starknet::Store)]
-        pub struct Showdown {}
+        pub struct SHOWDOWN {}
     }
 
     #[derive(Drop, PartialEq, starknet::Event)]
