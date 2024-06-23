@@ -41,3 +41,16 @@ pub struct Hand {
     pub community_cards: Array<CommunityCards>,
     pub index: u256,
 }
+
+#[derive(Drop, Hash)]
+pub struct DeckCard {
+    pub suite: u8,
+    pub rank: u8,
+    pub index: u8
+}
+
+#[derive(Drop, Hash)]
+pub struct Block {
+    pub block_timestamp: u64,
+    pub block_number: u64,
+}
