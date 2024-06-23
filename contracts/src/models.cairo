@@ -1,14 +1,14 @@
 use starknet::ContractAddress;
-use starkdeck_contracts::events::game_events::game_phase::{PreFlop, Flop, Turn, River, Showdown};
+use starkdeck_contracts::events::game_events::game_phase::{PRE_FLOP, FLOP, TURN, RIVER, SHOWDOWN};
 use starkdeck_contracts::impls::{StoreHoleCardsArray, StoreCommunityCardsArray};
 
 #[derive(Drop, Serde, Copy, PartialEq, starknet::Event, starknet::Store)]
 pub enum GamePhase {
-    PreFlop: PreFlop,
-    Flop: Flop,
-    Turn: Turn,
-    River: River,
-    Showdown: Showdown
+    PRE_FLOP: PRE_FLOP,
+    FLOP: FLOP,
+    TURN: TURN,
+    RIVER: RIVER,
+    SHOWDOWN: SHOWDOWN
 }
 
 #[derive(Drop, Serde, Copy, PartialEq, starknet::Store)]

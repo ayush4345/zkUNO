@@ -3,6 +3,7 @@ pub(crate) mod PlayPoker {
     use starknet::{
         ContractAddress, get_caller_address, get_contract_address, contract_address_const
     };
+    use starkdeck_contracts::events::game_events::game_phase::{PRE_FLOP, FLOP, TURN, RIVER, SHOWDOWN};
     use openzeppelin::access::ownable::OwnableComponent;
     use openzeppelin::upgrades::UpgradeableComponent;
     use openzeppelin::upgrades::interface::IUpgradeable;
@@ -32,6 +33,7 @@ pub(crate) mod PlayPoker {
         big_blind: u256,
         current_phase: GamePhase,
         players: LegacyMap<ContractAddress, Player>,
+        total_players: u256,
         current_hand: Hand,
         player_commitments: LegacyMap::<u64, (ContractAddress, u256)>, // workaround for LegacyMap
         player_revealed: LegacyMap::<u64, (ContractAddress, bool)>, // workaround for LegacyMap
@@ -79,6 +81,7 @@ pub(crate) mod PlayPoker {
         self.small_blind.write(_small_blind.into());
         self.big_blind.write(_big_blind.into());
         self.token.write(IERC20Dispatcher { contract_address: token });
+        self.total_players.write(0);
     }
 
 
@@ -102,7 +105,17 @@ pub(crate) mod PlayPoker {
                 balance: amount, address: get_caller_address(), is_playing: true, has_folded: false
             };
             self.players.write(player.address, player);
+            let total_players = self.total_players.read();
+            self.total_players.write(total_players + 1);
             self.emit(PlayerJoined { player: get_caller_address() });
+        }
+
+        fn start_game(ref self: ContractState) {
+            let total_players = self.total_players.read();
+            assert!(total_players >= 2, "Minimum 2 players required to start the game");
+            self.current_phase.write(GamePhase::PRE_FLOP(PRE_FLOP {}));
+            self.emit(GameStarted {});
+            
         }
 
         fn get_player(self: @ContractState, player: ContractAddress) -> Player {
