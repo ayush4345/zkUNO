@@ -1,6 +1,14 @@
+use core::traits::TryInto;
 use starknet::{SyscallResult, Store};
 use starknet::storage_access::StorageBaseAddress;
 use starkdeck_contracts::models::{HoleCards, CommunityCards};
+use alexandria_storage::list::{List, ListTrait};
+
+
+pub impl ListHoleCardsCopy of Copy<List<HoleCards>> {}
+pub impl ListCommunityCardsCopy of Copy<List<CommunityCards>> {}
+pub impl ArrayFelt252Copy of Copy<Array<felt252>> {}
+
 
 pub impl StoreHoleCardsArray of Store<Array<HoleCards>> {
     fn read(address_domain: u32, base: StorageBaseAddress) -> SyscallResult<Array<HoleCards>> {
@@ -90,7 +98,8 @@ pub impl StoreCommunityCardsArray of Store<Array<CommunityCards>> {
                 break;
             }
 
-            let value = Store::<CommunityCards>::read_at_offset(address_domain, base, offset).unwrap();
+            let value = Store::<CommunityCards>::read_at_offset(address_domain, base, offset)
+                .unwrap();
             arr.append(value);
             offset += Store::<CommunityCards>::size();
         };
@@ -100,7 +109,10 @@ pub impl StoreCommunityCardsArray of Store<Array<CommunityCards>> {
     }
 
     fn write_at_offset(
-        address_domain: u32, base: StorageBaseAddress, mut offset: u8, mut value: Array<CommunityCards>
+        address_domain: u32,
+        base: StorageBaseAddress,
+        mut offset: u8,
+        mut value: Array<CommunityCards>
     ) -> SyscallResult<()> {
         // Store the length of the array in the first storage slot.
         let len: u8 = value.len().try_into().expect('Storage - Span too large');
@@ -110,7 +122,8 @@ pub impl StoreCommunityCardsArray of Store<Array<CommunityCards>> {
         // Store the array elements sequentially
         while let Option::Some(element) = value
             .pop_front() {
-                Store::<CommunityCards>::write_at_offset(address_domain, base, offset, element).unwrap();
+                Store::<CommunityCards>::write_at_offset(address_domain, base, offset, element)
+                    .unwrap();
                 offset += Store::<CommunityCards>::size();
             };
 
@@ -179,5 +192,26 @@ pub impl StoreFelt252Array of Store<Array<felt252>> {
 
     fn size() -> u8 {
         255 * Store::<felt252>::size()
+    }
+}
+
+pub impl PartialOrdFelt of PartialOrd<felt252> {
+    #[inline(always)]
+    fn le(lhs: felt252, rhs: felt252) -> bool {
+        !(rhs < lhs)
+    }
+    #[inline(always)]
+    fn ge(lhs: felt252, rhs: felt252) -> bool {
+        !(lhs < rhs)
+    }
+    #[inline(always)]
+    fn lt(lhs: felt252, rhs: felt252) -> bool {
+        let rhs: u256 = rhs.into();
+        let lhs: u256 = lhs.into();
+        lhs < rhs
+    }
+    #[inline(always)]
+    fn gt(lhs: felt252, rhs: felt252) -> bool {
+        rhs < lhs
     }
 }
