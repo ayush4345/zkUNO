@@ -22,7 +22,7 @@ const About = () => (
                 variants={fadeIn('up', 'tween', 0.2, 1)}
                 className="mt-[8px] font-normal sm:text-[32px] text-[20px] text-center text-secondary-white"
             >
-                <span className="font-extrabold text-white">StarkDeck</span> represents a groundbreaking approach in the online poker industry, merging the thrill of poker with the robust security and anonymity offered by cryptocurrencies. This platform harnesses the power of  {' '}
+                <span className="font-extrabold text-white">ZkUNO</span> represents a groundbreaking approach in the online poker industry, merging the thrill of poker with the robust security and anonymity offered by cryptocurrencies. This platform harnesses the power of  {' '}
                 <span className="font-extrabold text-white">
                     blockchain technology
                 </span>{' '}

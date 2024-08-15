@@ -25,10 +25,10 @@ const Footer = () => (
         <div className="mb-[50px] h-[2px] bg-white opacity-10" />
         <div className="flex items-center justify-between flex-wrap gap-4">
           <h4 className="font-extrabold text-[24px] text-white">
-            StarkDeck
+            ZkUNO
           </h4>
           <p className="font-normal text-[14px] text-white opacity-50">
-            Copyright © 2024 - 2025 StarkDeck. All rights reserved.
+            Copyright © 2024 - 2025 ZkUNO. All rights reserved.
           </p>
           <div className="flex gap-4">
             {socials.map((social) => (

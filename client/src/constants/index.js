@@ -2,6 +2,6 @@ export const socials = [
     {
       name: 'github',
       url: '/github.png',
-      link: 'https://github.com/Saurus9290/StarkDeck'
+      link: 'https://github.com/ayush4345/zkUNO'
     },
   ];

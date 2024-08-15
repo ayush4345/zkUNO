@@ -47,7 +47,7 @@ export default function TokenInfoBar() {
         <div className={`w-[100%] xl:max-w-[1280px] flex justify-between items-center mx-auto pt-5 px-3`}>
             <Link href="/">
                 <h2 className="font-extrabold text-[24px] text-white cursor-pointer">
-                    STARKDECK
+                    ZkUNO
                 </h2>
             </Link>
             <div className="flex gap-4 items-center">
@@ -55,7 +55,7 @@ export default function TokenInfoBar() {
                 <Link href="/create" className="text-white font-semibold text-lg shadow-md hover:underline p-1 rounded-md cursor-pointer">Create</Link >
                 <Link href="/game/join" className="text-white font-semibold text-lg shadow-md hover:underline p-1 rounded-md cursor-pointer">Join</Link >
                 <span className="flex items-center gap-3 border-[1px] p-2 px-4 rounded-xl">
-                    <div className="text-white font-semibold text-lg">{tokenAmount} Stark</div>
+                    <div className="text-white font-semibold text-lg">{tokenAmount} UNO</div>
                     <Dialog open={open} onOpenChange={(state) => setOpen(state)}>
                         <DialogTrigger asChild>
                             <StyledButton className='bg-[#c69532] text-xs'><span className="flex items-center gap-3"><IoMdAdd />Add Fund</span> </StyledButton>
