@@ -22,14 +22,8 @@ const About = () => (
                 variants={fadeIn('up', 'tween', 0.2, 1)}
                 className="mt-[8px] font-normal sm:text-[32px] text-[20px] text-center text-secondary-white"
             >
-                <span className="font-extrabold text-white">ZkUNO</span> represents a groundbreaking approach in the online poker industry, merging the thrill of poker with the robust security and anonymity offered by cryptocurrencies. This platform harnesses the power of  {' '}
-                <span className="font-extrabold text-white">
-                    blockchain technology
-                </span>{' '}
-                {' '}
-                <span className="font-extrabold text-white"></span> to create a decentralized, transparent, and secure environment for poker enthusiasts worldwide.
-                Let's{' '}
-                <span className="font-extrabold text-white">Zero-knowledge proofs</span>  enable the platform to verify transactions and interactions without disclosing any sensitive information (player hands), enhancing privacy and security for users.
+                <span className="font-extrabold text-white">zkUNO</span> Zero-Knowledge UNO (zkUNO) is a cutting-edge, multiplayer digital adaptation of the classic UNO game, now enhanced with advanced Zero-Knowledge Proofs (ZKPs) technology to ensure privacy, fairness, and security in every game. Whether you're a casual player or a competitive strategist,  zkUNO offers a revolutionary gaming experience that combines the fun of UNO with the power of blockchain technology
+
             </motion.p>
 
             <motion.img
