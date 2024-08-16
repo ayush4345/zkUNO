@@ -1,4 +1,4 @@
-## ZkUNO
+## zkUNO
 
 ### Overview
 zkUNO is a cutting-edge, multiplayer digital adaptation of the classic UNO game, now enhanced with advanced Zero-Knowledge Proofs (ZKPs) technology to ensure privacy, fairness, and security in every game. Whether you're a casual player or a competitive strategist, zkUNO offers a revolutionary gaming experience that combines the fun of UNO with the power of blockchain technology
