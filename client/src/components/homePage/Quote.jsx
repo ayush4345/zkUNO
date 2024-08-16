@@ -27,7 +27,7 @@ const Quote = () => (
           </p>
         </div>
         <p className="mt-[24px] font-normal sm:text-[24px] text-[18px] sm:leading-[45.6px] leading-[39.6px] text-white">
-          “The beautiful thing about poker is that everybody thinks they can play”
+          “The beautiful thing about UNO is that everybody thinks they can play”
         </p>
       </motion.div>
 
