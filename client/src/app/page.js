@@ -3,6 +3,7 @@ import Hero from "@/components/homePage/Hero"
 import About from "@/components/homePage/About"
 import Footer from "@/components/homePage/Footer"
 import Quote from "@/components/homePage/Quote"
+import Explore from "@/components/homePage/Explore"
 
 export default function Home() {
 
@@ -13,6 +14,7 @@ export default function Home() {
         <Hero />
         <div className="relative">
           <About />
+          <Explore />
         </div>
         <div className="relative">
           <Quote />
